@@ -260,6 +260,8 @@ void ParameterParser::DieOnHelp(const std::string& err) const
             << " Options:" << std::endl
             << "  -KnownN:               The n-gram length of the word language model (-KnownN N (1))" << std::endl
             << "  -UnkN:                 The n-gram length of the character language model (-UnkN N (1))" << std::endl
+            << "  -HMMCodebookSize:      Codebook size for the HMM (-HMMCodebookSize N (1024))" << std::endl
+            << "  -HMMNumUnits:          Number of units in the HMM (-HMMNumUnits N (100))" << std::endl
             << "  -NoThreads:            The number of threads used for sampling (-NoThreads N (1))" << std::endl
             << "  -PruneFactor:          Prune paths in the input that have a PruneFactor times higher score" << std::endl
             << "                         than the lowest scoring path (-PruneFactor X (inf))" << std::endl
@@ -273,7 +275,7 @@ void ParameterParser::DieOnHelp(const std::string& err) const
             << "  -InputArcInfosFile:    arc infos file if reading from openfst lattices where input id points to" << std::endl
             << "                         label, start, end infos (Parameter: -InputArcInfosFile InputArcInfosFile ())" << std::endl
             << "  -Debug:                Set debug level (-Debug N (0))" << std::endl
-            << "  -LatticeFileType:      Format of lattice files (-LatticeFileType [cmu|htk|openfst] (text))" << std::endl
+            << "  -LatticeFileType:      Format of lattice files (-LatticeFileType [cmu|htk|openfst|dhmm] (text))" << std::endl
             << "  -ExportLattices:       Export the input lattices to openfst format (-ExportLattices ExportLatticesDirectoryName)" << std::endl
             << "  -NumIter:              Maximum number of iterations (-NumIter N (0))" << std::endl
             << "  -OutputDirectoryBasename: The basename for result outpt Directory" << std::endl
@@ -368,6 +370,8 @@ ParameterStruct::ParameterStruct() :
   DecodeMethod(0),
   KnownN(1),
   UnkN(1),
+  HMMCodebookSize(1024),
+  HMMNumUnits(100),
   NoThreads(1),
   PruneFactor(std::numeric_limits<double>::infinity()),
   InputFilesList(),

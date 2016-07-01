@@ -19,3 +19,4 @@
 ./StartSim_openfst_lattice_increase.bash WSJCAM0_Lattice/WSJCAM0_Phoneme_Lattice.10.txt 1 2 3 1 2 2 6 1
 ./StartSim_openfst_lattice_increase_fixed.bash WSJCAM0_Lattice/WSJCAM0_Phoneme_Lattice.10.txt 1 2 3 1 2 2 6 1
 
+./StartSim_discretehmm.bash States/CSJ_VQ.txt 2 6 1024 100 2
