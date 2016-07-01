@@ -64,6 +64,7 @@
 #include "ParameterParser/ParameterParser.hpp"
 #include "FileReader/FileData.hpp"
 #include "NHPYLM/NHPYLM.hpp"
+#include "HMM/DiscreteHMM.hpp"
 #include "LatticeWordSegmentationTimer.hpp"
 #include "LexFst.hpp"
 
@@ -86,6 +87,9 @@ class LatticeWordSegmentation {
   std::size_t SentEndWordId;       // the sentence end word id
   std::size_t WHPYLMContextLength; // the context length for the whpylm with given order
 
+  /* HMM model */
+  DiscreteHMM *HMMModel;           // the HMM (optional)
+
   /* sampling data */
   std::size_t NumSampledSentences;                          // number of sentences in input
   std::vector<LogVectorFst > SampledFsts;                   // the sampled fsts
@@ -102,6 +106,12 @@ class LatticeWordSegmentation {
   void InitializeLanguageModel(
     int NewUnkN,
     int NewKnownN
+  );
+
+  // initialize a language model
+  void InitializeHMMModel(
+    int CodebookSize,
+    int NumUnits
   );
   
   // initialize with initiliazation fsts

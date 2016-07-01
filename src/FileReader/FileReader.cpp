@@ -60,6 +60,7 @@ FileReader::FileReader(ParameterStruct Params) :
 
 void FileReader::ReadData(FileData & data) const
 {
+
   // read the initialization, input and reference data,
   // export data if specified and do some prepocessing
   // of the input lattices (acoustic model scaling and
@@ -96,11 +97,13 @@ void FileReader::ReadData(FileData & data) const
     }
   }
 
-  if (Params.AmScale != 1) {
-    ApplyAcousticModelScalingFactor(data);
+  if(Params.LatticeFileType != DISCRETE_HMM) {
+    if (Params.AmScale != 1) {
+      ApplyAcousticModelScalingFactor(data);
+    }  
+    ApplyWordEndTransducer(data);
+    ApplySentEndTransducer(data);
   }
-  ApplyWordEndTransducer(data);
-  ApplySentEndTransducer(data);
 
 }
 
@@ -188,6 +191,9 @@ void FileReader::ReadInputFilesFromList(FileData & data) const
     break;
   case OPEN_FST:
     ReadOpenFSTLattices(data);
+    break;
+  case DISCRETE_HMM:
+    ReadDiscreteHMMSequences(data);
     break;
   case TEXT:
     ReadTextFiles(data, Params.InputFiles, &data.GetInputFsts(), &data.GetInputFileNames());
@@ -697,6 +703,22 @@ void FileReader::ReadTextFiles(
       FileNames->push_back(
         boost::filesystem::path(InputFile).filename().string() +
         "_Line_" + std::to_string(++SentenceIndex));
+    }
+  }
+}
+
+void FileReader::ReadDiscreteHMMSequences(
+  FileData & data) const
+{
+  for(auto& InputFile: Params.InputFiles) {
+    std::ifstream in(InputFile);
+    for (std::string line; std::getline(in, line); ) {
+      std::vector<int> seq;
+      std::istringstream iss(line);
+      int buff;
+      while(iss >> buff)
+        seq.push_back(buff);
+      data.GetInputDiscreteSeqs().push_back(seq);
     }
   }
 }

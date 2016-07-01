@@ -75,6 +75,10 @@ ParameterParser::ParameterParser(int argc, const char **argv):
       Parameters.KnownN = atoi(argv[++argPos]);
     } else if (!strcmp(argv[argPos], "-UnkN")) {
       Parameters.UnkN = atoi(argv[++argPos]);
+    } else if (!strcmp(argv[argPos], "-HMMCodebookSize")) {
+      Parameters.HMMCodebookSize = atoi(argv[++argPos]);
+    } else if (!strcmp(argv[argPos], "-HMMNumUnits")) {
+      Parameters.HMMNumUnits = atoi(argv[++argPos]);
     } else if (!strcmp(argv[argPos], "-NoThreads")) {
       Parameters.NoThreads = atoi(argv[++argPos]);
       if (Parameters.NoThreads == 0) {
@@ -92,6 +96,8 @@ ParameterParser::ParameterParser(int argc, const char **argv):
         Parameters.InputType = INPUT_FST;
       } else if (!strcmp("text", argv[argPos])) {
         Parameters.InputType = INPUT_TEXT;
+      } else if (!strcmp("hmm", argv[argPos])) {
+        Parameters.InputType = INPUT_HMM;
       } else {
         std::ostringstream err;
         err << "Bad input type '" << argv[argPos] << "'";
@@ -140,6 +146,10 @@ ParameterParser::ParameterParser(int argc, const char **argv):
         Parameters.LatticeFileType = HTK_FST;
       } else if (!strcmp("openfst", argv[argPos])) {
         Parameters.LatticeFileType = OPEN_FST;
+      } else if (!strcmp("text", argv[argPos])) {
+        Parameters.LatticeFileType = TEXT;
+      } else if (!strcmp("dhmm", argv[argPos])) {
+        Parameters.LatticeFileType = DISCRETE_HMM;
       } else {
         std::ostringstream err;
         err << "Bad lattice file type '" << argv[argPos] << "'";

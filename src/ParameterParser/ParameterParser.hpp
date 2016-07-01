@@ -140,6 +140,8 @@ struct ParameterStruct {
   unsigned int DeactivateCharacterModel;        // Set iteration to deactivate character model. 0: off, >0 number of iteration (Patameter: -DeactivateCharacterModel NumIter)
   double HTKLMScale;                    // Language model scaling factor when reading HTK lattices (Parameter: -HTKLMScale K (0))
   bool ReadNodeTimes;                   // Read node timing informations from HTK lattice
+  int HMMCodebookSize;                  // Size of the HMM codebook
+  int HMMNumUnits;                      // Number of units in the HMM
 
   ParameterStruct(); // constructor to set default values
 };

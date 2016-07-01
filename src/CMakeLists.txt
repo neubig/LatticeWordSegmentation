@@ -61,6 +61,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 add_subdirectory(FileReader)
 add_subdirectory(EditDistanceCalculator)
 add_subdirectory(NHPYLM)
+add_subdirectory(HMM)
 add_subdirectory(ParameterParser)
 add_subdirectory(Evaluate)
 
@@ -83,6 +84,7 @@ target_link_libraries(LatticeWordSegmentation
   FileReader
   EditDistanceCalculator
   NHPYLM
+  HMM
   ParameterParser
   Evaluate
 )

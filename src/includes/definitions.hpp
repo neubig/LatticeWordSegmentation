@@ -110,8 +110,8 @@ struct ArcInfo {
     label(label_), start(start_), end(end_) {};
 };
 
-enum LatticeFileTypes {CMU_FST, HTK_FST, OPEN_FST, TEXT}; // file types for input lattices
-enum InputTypes {INPUT_FST, INPUT_TEXT};                  // input modes: fst or text
+enum LatticeFileTypes {CMU_FST, HTK_FST, OPEN_FST, TEXT, DISCRETE_HMM}; // file types for input lattices
+enum InputTypes {INPUT_FST, INPUT_TEXT, INPUT_HMM};                  // input modes: fst or text
 enum SymbolWriteModes {NONE, NAMES, NAMESANDIDS};         // modes for symbol output in fst printing
 
 #endif

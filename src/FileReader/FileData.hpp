@@ -79,6 +79,7 @@ class FileData{
 
   // membersf for input fsts
   StringToIntMapper InputStringToInt;
+  std::vector<std::vector<int> > InputDiscreteSeqs;
   std::vector<LogVectorFst> InputFsts;
   std::vector<std::string> InputFileNames;
   std::vector<ArcInfo> InputArcInfos; // ArcInfo members: {label, start, end}
@@ -121,6 +122,12 @@ public:
   std::vector<LogVectorFst> &GetReferenceFsts() { return ReferenceFsts; }
   LogVectorFst &GetInitFst(size_t index) { return InitFsts[index]; }
   std::vector<LogVectorFst> &GetInitFsts() { return InitFsts; }
+
+  const std::vector<int> &GetInputDiscreteSeq(size_t index) const { return InputDiscreteSeqs[index]; }
+  const std::vector<std::vector<int> > &GetInputDiscreteSeqs() const { return InputDiscreteSeqs; }
+
+  std::vector<int> &GetInputDiscreteSeq(size_t index) { return InputDiscreteSeqs[index]; }
+  std::vector<std::vector<int> > &GetInputDiscreteSeqs() { return InputDiscreteSeqs; }
 
   const std::vector<std::string> &GetInputFileNames() const { return InputFileNames; }
   const std::vector<std::string> &GetReferenceFileNames() const { return ReferenceFileNames; }

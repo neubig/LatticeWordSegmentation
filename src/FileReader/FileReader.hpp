@@ -77,6 +77,7 @@ class FileReader {
   // Lattice reading commands
   void ReadHTKLattices(FileData & data) const;
   void ReadOpenFSTLattices(FileData & data) const;
+  void ReadDiscreteHMMSequences(FileData & data) const;
 
   void ReadSegmentList(
     std::size_t InputFileId,

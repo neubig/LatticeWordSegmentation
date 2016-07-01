@@ -94,6 +94,10 @@ void LatticeWordSegmentation::DoWordSegmentation()
   // (parse reference fsts, add to language model and retrain)
   InitializeLanguageModel(Params.UnkN, Params.KnownN);
 
+  // Initialize the HMM model if necessary
+  if(Params.InputType == INPUT_HMM)
+    InitializeHMMModel(Params.HMMCodebookSize, Params.HMMNumUnits);
+
   // initialize output vector for sampled sentences and fsts
   NumSampledSentences = InputFileData.GetNumInputs();
   SampledSentences.resize(
@@ -203,8 +207,15 @@ void LatticeWordSegmentation::DoWordSegmentationSentenceIterations(
 
     auto SampleFn = [&](std::size_t IdxSentence, std::size_t IdxThread){
       std::size_t CurrentIndex = ShuffledIndices[IdxSentence + IdxThread];
+      // TODO: It's probably better to use a reference, but this is not
+      //       trivial to do when things are dynamically created and threaded
+      LogVectorFst InputFst = (
+        Params.InputType == INPUT_HMM ?
+        HMMModel->frameStateWfst(InputFileData.GetInputDiscreteSeq(CurrentIndex)) :
+        InputFileData.GetInputFst(CurrentIndex) );
+      // Perform sampling
       SampleLib::ComposeAndSampleFromInputLexiconAndLM(
-                    &InputFileData.GetInputFst(CurrentIndex),
+                    &InputFst,
                     LexiconTransducer,
                     LanguageModel,
                     SentEndWordId,
@@ -418,4 +429,19 @@ void LatticeWordSegmentation::TrainLanguageModel(
     DebugLib::PrintLanguageModelStats(*LanguageModel);
   }
   std::cout << std::endl;
+}
+
+/***********************************************************
+ * Functions for HMM model modifications:
+ * - InitializeHMMModel
+************************************************************/
+
+void LatticeWordSegmentation::InitializeHMMModel(int CodebookSize, int NumUnits)
+{
+  std::cout << " Initializing HMM Model with CodebookSize="
+            << CodebookSize << ", NumUnits=" << NumUnits << "!"
+            << std::endl << std::endl;
+
+  HMMModel = new DiscreteHMM(CodebookSize, NumUnits);
+
 }

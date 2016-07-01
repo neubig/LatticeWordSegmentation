@@ -58,6 +58,7 @@ FileData::FileData(const FileData& lhs):
   InitFsts(lhs.InitFsts),
   InitFileNames(lhs.InitFileNames),
   InputStringToInt(lhs.InputStringToInt),
+  InputDiscreteSeqs(lhs.InputDiscreteSeqs),
   InputFsts(lhs.InputFsts),
   InputFileNames(lhs.InputFileNames),
   InputArcInfos(lhs.InputArcInfos),
