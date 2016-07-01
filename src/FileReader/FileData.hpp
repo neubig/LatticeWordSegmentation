@@ -116,10 +116,17 @@ public:
   // integer to string mapping for the init transcription (characters)
   const std::vector<std::string> &GetInitIntToStringVector() const;
 
-  const std::vector<LogVectorFst> &GetInputFsts() const;
+  size_t GetNumInputs() const;
 
+  // We do not have GetInputFsts() because they may be calculated on-the-fly
+  // on a sentence-by-sentence basis
+  const LogVectorFst &GetInputFst(size_t index) const;
+  // const std::vector<LogVectorFst> &GetInputFsts() const;
+
+  const LogVectorFst &GetReferenceFst(size_t index) const;
   const std::vector<LogVectorFst> &GetReferenceFsts() const;
 
+  const LogVectorFst &GetInitFst(size_t index) const;
   const std::vector<LogVectorFst> &GetInitFsts() const;
 
   const std::vector<std::string> &GetInputFileNames() const;

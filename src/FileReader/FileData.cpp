@@ -100,12 +100,27 @@ const std::vector<std::string> &FileData::GetInitIntToStringVector() const
   return InitStringToInt.GetIntToStringVector();
 }
 
-
-const std::vector<LogVectorFst> &FileData::GetInputFsts() const
+size_t FileData::GetNumInputs() const
 {
-  return InputFsts;
+  return InputFsts.size();
 }
 
+const LogVectorFst &FileData::GetInputFst(size_t index) const
+{
+  return InputFsts[index];
+}
+
+
+const LogVectorFst &FileData::GetReferenceFst(size_t index) const
+{
+  return ReferenceFsts[index];
+}
+
+
+const LogVectorFst &FileData::GetInitFst(size_t index) const
+{
+  return InitFsts[index];
+}
 
 const std::vector<LogVectorFst> &FileData::GetReferenceFsts() const
 {

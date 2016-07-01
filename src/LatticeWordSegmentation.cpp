@@ -95,7 +95,7 @@ void LatticeWordSegmentation::DoWordSegmentation()
   InitializeLanguageModel(Params.UnkN, Params.KnownN);
 
   // initialize output vector for sampled sentences and fsts
-  NumSampledSentences = InputFileData.GetInputFsts().size();
+  NumSampledSentences = InputFileData.GetNumInputs();
   SampledSentences.resize(
     NumSampledSentences,
     std::vector<int>(WHPYLMContextLength, SentEndWordId)
@@ -204,7 +204,7 @@ void LatticeWordSegmentation::DoWordSegmentationSentenceIterations(
     auto SampleFn = [&](std::size_t IdxSentence, std::size_t IdxThread){
       std::size_t CurrentIndex = ShuffledIndices[IdxSentence + IdxThread];
       SampleLib::ComposeAndSampleFromInputLexiconAndLM(
-                    &InputFileData.GetInputFsts().at(CurrentIndex),
+                    &InputFileData.GetInputFst(CurrentIndex),
                     LexiconTransducer,
                     LanguageModel,
                     SentEndWordId,
