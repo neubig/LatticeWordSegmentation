@@ -56,77 +56,69 @@
 FileReader::FileReader(ParameterStruct Params) :
   Params(Params)
 {
-  GlobalStringToInt.Insert(EPS_SYMBOL);
-  GlobalStringToInt.Insert(PHI_SYMBOL);
-  GlobalStringToInt.Insert(UNKBEGIN_SYMBOL);
-  GlobalStringToInt.Insert(UNKEND_SYMBOL);
-  GlobalStringToInt.Insert(SENTSTART_SYMBOL);
-  GlobalStringToInt.Insert(SENTEND_SYMBOL);
+}
 
+void FileReader::ReadData(FileData & data) const
+{
   // read the initialization, input and reference data,
   // export data if specified and do some prepocessing
   // of the input lattices (acoustic model scaling and
   // application of word end and sentence end transducers
   if (!Params.SymbolFile.empty()) {
-    ReadSymbols();
+    ReadSymbols(data);
   }
 
   if (!Params.InputArcInfosFile.empty()) {
-    ReadInputArcInfos();
+    ReadInputArcInfos(data);
   }
 
   if (Params.UseDictFile) {
-    ReadPronDict();
+    ReadPronDict(data);
   }
 
   if (Params.InitLM) {
-    ReadInitTranscription();
+    ReadTextFiles(data,
+                  std::vector<std::string>(1, Params.InitTranscription),
+                  &data.GetInitFsts(), &data.GetInitFileNames(), PARSE_REFERENCES);
+    data.GetInitStringToInt() = data.GetGlobalStringToInt();
   }
 
-  ReadInputFilesFromList();
+  ReadInputFilesFromList(data);
 
   if (Params.ExportLattices) {
-    WriteOpenFSTLattices();
+    WriteOpenFSTLattices(data);
   }
 
   if (Params.UseReferenceTranscription) {
-    ReadReferenceTranscription();
+    ReadReferenceTranscription(data);
     if (Params.CalculateLPER) {
-      CalculateLatticePhonemeErrorRate();
+      CalculateLatticePhonemeErrorRate(data);
     }
   }
 
   if (Params.AmScale != 1) {
-    ApplyAcousticModelScalingFactor();
+    ApplyAcousticModelScalingFactor(data);
   }
-  ApplyWordEndTransducer();
-  ApplySentEndTransducer();
+  ApplyWordEndTransducer(data);
+  ApplySentEndTransducer(data);
 
 }
 
-FileData FileReader::GetInputFileData()
-{
-  return FileData(GlobalStringToInt, InitStringToInt, InitFsts, InitFileNames,
-                  InputStringToInt, InputFsts, InputFileNames, InputArcInfos,
-                  ReferenceStringToInt, ReferenceFsts, ReferenceFileNames);
-}
-
-
-void FileReader::WriteInputArcInfos() const
+void FileReader::WriteInputArcInfos(const FileData & data) const
 {
   std::cout << "  Writing input arc information to "
             << Params.ExportLatticesDirectoryName
             << "input_arcs.txt" << std::endl;
   std::ofstream ArcFile(Params.ExportLatticesDirectoryName + "input_arcs.txt");
-  for (std::size_t i = 0; i < InputArcInfos.size(); i++) {
-    ArcFile << InputArcInfos.at(i).label << "\t" << InputArcInfos.at(i).start
-            << "\t" << InputArcInfos.at(i).end << std::endl;
+  for (std::size_t i = 0; i < data.GetInputArcInfos().size(); i++) {
+    ArcFile << data.GetInputArcInfos().at(i).label << "\t" << data.GetInputArcInfos().at(i).start
+            << "\t" << data.GetInputArcInfos().at(i).end << std::endl;
   }
   ArcFile.close();
 }
 
 
-void FileReader::ReadInputArcInfos()
+void FileReader::ReadInputArcInfos(FileData & data) const
 {
   std::cout << "  Reading input arc information from "
             << Params.InputArcInfosFile << std::endl;
@@ -139,7 +131,7 @@ void FileReader::ReadInputArcInfos()
   while (ArcFile >> label) {
     ArcFile >> start;
     ArcFile >> end;
-    InputArcInfos.push_back(ArcInfo(label, start, end));
+    data.GetInputArcInfos().push_back(ArcInfo(label, start, end));
 //     std::cout << "Input arc info [" << InputArcInfos.size() - 1
 //               << "] - Label: " << label << " Start: " << start << " End: "
 //               << end << std::endl;
@@ -148,7 +140,7 @@ void FileReader::ReadInputArcInfos()
 }
 
 
-void FileReader::ReadSymbols()
+void FileReader::ReadSymbols(FileData & data) const
 {
   // open the symbolfile
   std::ifstream in(Params.SymbolFile);
@@ -181,43 +173,34 @@ void FileReader::ReadSymbols()
 
   // read the symbols
   while (in >> buff) {
-    GlobalStringToInt.Insert(buff);
+    data.GetGlobalStringToInt().Insert(buff);
 //  std::cerr << "Adding symbol " << buff << " as "
 //            << GlobalStringToInt.GetInt(buff) << std::endl;
     in >> buff;
   }
 }
 
-
-void FileReader::ReadInitTranscription()
-{
-  ReadTextFiles(std::vector<std::string>(1, Params.InitTranscription),
-                &InitFsts, &InitFileNames, PARSE_REFERENCES);
-  InitStringToInt = GlobalStringToInt;
-}
-
-
-void FileReader::ReadInputFilesFromList()
+void FileReader::ReadInputFilesFromList(FileData & data) const
 {
   switch (Params.LatticeFileType) {
   case HTK_FST:
-    ReadHTKLattices();
+    ReadHTKLattices(data);
     break;
   case OPEN_FST:
-    ReadOpenFSTLattices();
+    ReadOpenFSTLattices(data);
     break;
   case TEXT:
-    ReadTextFiles(Params.InputFiles, &InputFsts, &InputFileNames);
+    ReadTextFiles(data, Params.InputFiles, &data.GetInputFsts(), &data.GetInputFileNames());
     break;
   default:
     std::cout << "Invalid lattice file type!" << std::endl;
     std::exit(1);
   }
-  InputStringToInt = GlobalStringToInt;
+  data.GetInputStringToInt() = data.GetGlobalStringToInt();
 }
 
 
-void FileReader::ReadHTKLattices()
+void FileReader::ReadHTKLattices(FileData & data) const
 {
   for (std::size_t InputFileId = 0;
        InputFileId < Params.InputFiles.size(); InputFileId++) {
@@ -309,7 +292,7 @@ void FileReader::ReadHTKLattices()
                     << NodeTimes[NodeId] << std::endl;
         }
       }
-      InputArcInfos.push_back(ArcInfo(EPS_SYMBOLID, -1, -1));
+      data.GetInputArcInfos().push_back(ArcInfo(EPS_SYMBOLID, -1, -1));
     }
 
     //  read segment list
@@ -390,11 +373,11 @@ void FileReader::ReadHTKLattices()
           olab = EPS_SYMBOLID;
           ilab = EPS_SYMBOLID;
         } else {
-          olab = GlobalStringToInt.Insert(phone);
+          olab = data.GetGlobalStringToInt().Insert(phone);
           if (Params.ReadNodeTimes) {
-            InputArcInfos.push_back(
+            data.GetInputArcInfos().push_back(
               ArcInfo(olab, NodeTimes[start], NodeTimes[end]));
-            ilab = InputArcInfos.size() - 1;
+            ilab = data.GetInputArcInfos().size() - 1;
           } else {
             ilab = olab;
           }
@@ -499,15 +482,15 @@ void FileReader::ReadHTKLattices()
       std::cout << "Error: no states for utterance " << utterance << std::endl;
       std::runtime_error("Exiting");
     }
-    InputFsts.push_back(latticeFst);
-    InputFileNames.push_back(
+    data.GetInputFsts().push_back(latticeFst);
+    data.GetInputFileNames().push_back(
       boost::filesystem::path(
         Params.InputFiles.at(InputFileId)).filename().string());
   }
 }
 
 void FileReader::ReadSegmentList(std::size_t InputFileId,
-                                 std::string line, int debug_){
+                                 std::string line, int debug_) const {
   std::size_t NumSegments;
   std::vector<float> SegmentStart;
   std::vector<float> SegmentEnd;
@@ -546,7 +529,7 @@ void FileReader::ReadSegmentList(std::size_t InputFileId,
     }
   }
 }
-void FileReader::ReadOpenFSTLattices()
+void FileReader::ReadOpenFSTLattices(FileData & data) const
 {
   for (std::size_t i = 0; i < Params.InputFiles.size(); i++) {
     std::cout << "Reading lattice file [" << i << "/"
@@ -583,14 +566,14 @@ void FileReader::ReadOpenFSTLattices()
       std::runtime_error("Exiting");
     }
 
-    InputFsts.push_back(LogArcVectorFst);
+    data.GetInputFsts().push_back(LogArcVectorFst);
 
-    InputFileNames.push_back(
+    data.GetInputFileNames().push_back(
       boost::filesystem::path(Params.InputFiles.at(i)).filename().string());
   }
 }
 
-void FileReader::ReadPronDict()
+void FileReader::ReadPronDict(FileData & data) const
 {
   // Read pronunciation dictionary and store into map
   std::vector<std::string> Pronunciation;
@@ -609,7 +592,7 @@ void FileReader::ReadPronDict()
       std::runtime_error("Invalid PronDict format!");
     }
 
-    if (PronDict.count(Word) > 0) {
+    if (data.GetPronDict().count(Word) > 0) {
       std::cerr << "Warning: Multiple entries of the same word found."
                 << "Skipped: " << Word << std::endl
                 <<  "# Suggestion: use word+pron as a word if necessary."
@@ -626,7 +609,7 @@ void FileReader::ReadPronDict()
 
       // Add new phone to symbol table
       std::string PhoneSymbol(PHONE_PREFIX+Phone);
-      GlobalStringToInt.Insert(PhoneSymbol);
+      data.GetGlobalStringToInt().Insert(PhoneSymbol);
     }
 
     if(Pronunciation.size() == 0){
@@ -650,27 +633,28 @@ void FileReader::ReadPronDict()
       RevPronDict[PhoneSequence] =
           StringToIntMap{std::make_pair(Word, 0)};
     }
-    PronDict.insert(std::make_pair(Word, Pronunciation));
+    data.GetPronDict().insert(std::make_pair(Word, Pronunciation));
   }
 
   // Add pseudo phones to symbol table.
   // Abort with error if a symbol already exists.
   for(std::size_t NumAux = 1; NumAux < MaxAux; NumAux++){
     std::string AuxPhoneSymbol(PHONE_PREFIX + "#" + std::to_string(NumAux));
-    if(GlobalStringToInt.GetInt(AuxPhoneSymbol) >= 0) {
+    if(data.GetGlobalStringToInt().GetInt(AuxPhoneSymbol) >= 0) {
       std::runtime_error("Error: Pseudo phone " + PHONE_PREFIX +
                          "#" + std::to_string(NumAux) +
                          " should not exist in symbol table!");
     }
-    GlobalStringToInt.Insert(AuxPhoneSymbol);
+    data.GetGlobalStringToInt().Insert(AuxPhoneSymbol);
   }
 }
 
 void FileReader::ReadTextFiles(
+  FileData & data,
   const std::vector<std::string> &InputFiles,
   std::vector<LogVectorFst>* InputFsts,
   std::vector<std::string> *FileNames,
-  bool ParseReferences)
+  bool ParseReferences) const
 {
   for(auto& InputFile: InputFiles) {
     std::ifstream in(InputFile);
@@ -687,18 +671,18 @@ void FileReader::ReadTextFiles(
       if (ParseReferences && Params.UseDictFile) {
         // Dict file present: read words from file and look up pronunciation
         for (std::string Word; iss >> Word; ) {
-          std::vector<std::string>& Pronunciation = PronDict.at(Word);
+          std::vector<std::string>& Pronunciation = data.GetPronDict().at(Word);
           for(std::string phone: Pronunciation) {
-            State = AddPhoneToFst(latticeFst, State, phone);
+            State = AddPhoneToFst(data, latticeFst, State, phone);
           }
           // explicitly add word end marker
-          State = AddPhoneToFst(latticeFst, State, UNKEND_SYMBOL);
+          State = AddPhoneToFst(data, latticeFst, State, UNKEND_SYMBOL);
         }
       } else {
         // Sentence as sequence of phones separated by word end markers
         for (std::string phone; iss >> phone; ) {
-          GlobalStringToInt.Insert(phone);
-          State = AddPhoneToFst(latticeFst, State, phone);
+          data.GetGlobalStringToInt().Insert(phone);
+          State = AddPhoneToFst(data, latticeFst, State, phone);
         }
       }
       latticeFst.SetFinal(State, 0);
@@ -717,20 +701,21 @@ void FileReader::ReadTextFiles(
   }
 }
 
-StateId FileReader::AddPhoneToFst(LogVectorFst& LatticeFst, StateId State,
-                                  const std::string& phone)
+StateId FileReader::AddPhoneToFst(FileData & data,
+                                  LogVectorFst& LatticeFst, StateId State,
+                                  const std::string& phone) const
 {
-  CharId OutLab = GlobalStringToInt.GetInt(PHONE_PREFIX+phone);
+  CharId OutLab = data.GetGlobalStringToInt().GetInt(PHONE_PREFIX+phone);
   CharId InLab = OutLab;
   StateId nextState = LatticeFst.AddState();
   LatticeFst.AddArc(State, fst::LogArc(InLab, OutLab, 0, nextState));
   return nextState;
 }
 
-void FileReader::PruneLattices(double PruningFactor)
+void FileReader::PruneLattices(FileData & data, double PruningFactor) const
 {
   if (PruningFactor != std::numeric_limits<double>::infinity()) {
-    for (auto& currentInputFst: InputFsts) {
+    for (auto& currentInputFst: data.GetInputFsts()) {
       LogToStdMapFst InStdArcFst(currentInputFst, fst::LogToStdMapper());
       StdVectorFst OutStdArcFst;
       fst::Prune(InStdArcFst, &OutStdArcFst, PruningFactor);
@@ -750,39 +735,39 @@ void FileReader::PruneLattices(double PruningFactor)
 }
 
 
-void FileReader::ReadReferenceTranscription()
+void FileReader::ReadReferenceTranscription(FileData & data) const
 {
-  ReadTextFiles(std::vector<std::string>(1, Params.ReferenceTranscription),
-                &ReferenceFsts, &ReferenceFileNames);
-  ReferenceStringToInt = GlobalStringToInt;
-  if (ReferenceStringToInt.GetSize() > InputStringToInt.GetSize()) {
+  ReadTextFiles(data, std::vector<std::string>(1, Params.ReferenceTranscription),
+                &data.GetReferenceFsts(), &data.GetReferenceFileNames());
+  data.GetReferenceStringToInt() = data.GetGlobalStringToInt();
+  if (data.GetReferenceStringToInt().GetSize() > data.GetInputStringToInt().GetSize()) {
     std::cout << "WARNING: Reference transcription contains"
               << " more characters than input transcription!" << std::endl;
-    InputStringToInt = ReferenceStringToInt;
+    data.GetInputStringToInt() = data.GetReferenceStringToInt();
   }
 }
 
 
-void FileReader::WriteOpenFSTLattices() const
+void FileReader::WriteOpenFSTLattices(const FileData & data) const
 {
-  for (std::size_t FileIdx = 0; FileIdx < InputFileNames.size(); FileIdx++) {
-    DebugLib::WriteOpenFSTLattice(InputFsts.at(FileIdx),
+  for (std::size_t FileIdx = 0; FileIdx < data.GetInputFileNames().size(); FileIdx++) {
+    DebugLib::WriteOpenFSTLattice(data.GetInputFsts().at(FileIdx),
                                   Params.ExportLatticesDirectoryName +
-                                  InputFileNames.at(FileIdx) + "_" +
+                                  data.GetInputFileNames().at(FileIdx) + "_" +
                                   std::to_string(Params.PruneFactor));
   }
   DebugLib::WriteSymbols(Params.ExportLatticesDirectoryName + "symbols.txt",
-                         InputStringToInt.GetIntToStringVector(), NAMES);
-  if (!InputArcInfos.empty()) {
-    WriteInputArcInfos();
+                         data.GetInputStringToInt().GetIntToStringVector(), NAMES);
+  if (!data.GetInputArcInfos().empty()) {
+    WriteInputArcInfos(data);
   }
 }
 
 
-void FileReader::ApplyAcousticModelScalingFactor()
+void FileReader::ApplyAcousticModelScalingFactor(FileData & data) const
 {
   fst::WeightedMapper AcousticModelScalingFactorMapper(Params.AmScale);
-  for (auto& currentInputFst: InputFsts) {
+  for (auto& currentInputFst: data.GetInputFsts()) {
     fst::Map(&currentInputFst, AcousticModelScalingFactorMapper);
 //     std::cout << "Scaling FST: " << InputFstIdx << " with factor: "
 //               << Params.AmScale << std::endl;
@@ -790,7 +775,7 @@ void FileReader::ApplyAcousticModelScalingFactor()
 }
 
 
-void FileReader::ApplyWordEndTransducer()
+void FileReader::ApplyWordEndTransducer(FileData & data) const
 {
   LogVectorFst WordEndTransducer;
   StateId UNKState = WordEndTransducer.AddState();
@@ -803,7 +788,7 @@ void FileReader::ApplyWordEndTransducer()
   WordEndTransducer.AddArc(CharacterState,
     fst::LogArc(UNKEND_SYMBOLID, UNKEND_SYMBOLID, 0, UNKState));
   for (std::size_t k = CHARACTERSBEGIN;
-       k < InputStringToInt.GetIntToStringVector().size(); k++) {
+       k < data.GetInputStringToInt().GetIntToStringVector().size(); k++) {
 
     WordEndTransducer.AddArc(UNKState,
       fst::LogArc(k, k, 0, CharacterState));
@@ -812,12 +797,12 @@ void FileReader::ApplyWordEndTransducer()
       fst::LogArc(k, k, 0, CharacterState));
   }
 
-  for (auto& currentInputFst: InputFsts) {
+  for (auto& currentInputFst: data.GetInputFsts()) {
     currentInputFst = LogComposeFst(currentInputFst, WordEndTransducer);
   }
 }
 
-void FileReader::ApplySentEndTransducer()
+void FileReader::ApplySentEndTransducer(FileData & data) const
 {
   LogVectorFst SentEndTransducer;
   StateId CharacterState = SentEndTransducer.AddState();
@@ -832,7 +817,7 @@ void FileReader::ApplySentEndTransducer()
     fst::LogArc(UNKEND_SYMBOLID, UNKEND_SYMBOLID, 0, CharacterState));
 
   for (std::size_t k = CHARACTERSBEGIN;
-       k < InputStringToInt.GetIntToStringVector().size(); k++) {
+       k < data.GetInputStringToInt().GetIntToStringVector().size(); k++) {
 
     SentEndTransducer.AddArc(CharacterState,
       fst::LogArc(k, k, 0, CharacterState));
@@ -840,13 +825,13 @@ void FileReader::ApplySentEndTransducer()
   SentEndTransducer.AddArc(SentEndState,
     fst::LogArc(EPS_SYMBOLID, UNKEND_SYMBOLID, 0, FinalUNKState));
 
-  for (auto& currentInputFst: InputFsts) {
+  for (auto& currentInputFst: data.GetInputFsts()) {
     currentInputFst = LogComposeFst(currentInputFst, SentEndTransducer);
     fst::Connect(&currentInputFst);
   }
 }
 
-void FileReader::CalculateLatticePhonemeErrorRate()
+void FileReader::CalculateLatticePhonemeErrorRate(FileData & data) const
 {
   std::cout << " Calculating LPER with pruning from "
             << Params.PruningStart << " with step size "
@@ -857,7 +842,7 @@ void FileReader::CalculateLatticePhonemeErrorRate()
   for (double PruningFactor = Params.PruningStart;
        PruningFactor >= Params.PruningEnd;
        PruningFactor -= Params.PruningStep) {
-    PruneLattices(PruningFactor);
+    PruneLattices(data, PruningFactor);
     std::cout << "  Pruning factor: " << PruningFactor << std::endl;
 
     std:: string prefix =
@@ -867,14 +852,14 @@ void FileReader::CalculateLatticePhonemeErrorRate()
       Params.OutputFilesBasename + "LPER_";
 
     LPERCalculator InputLatticeStatistics(
-      InputFsts,
-      ReferenceFsts,
-      ReferenceStringToInt.GetIntToStringVector(),
+      data.GetInputFsts(),
+      data.GetReferenceFsts(),
+      data.GetReferenceStringToInt().GetIntToStringVector(),
       Params.NoThreads,
-      InputFileNames,
+      data.GetInputFileNames(),
       prefix,
       Params.OutputEditOperations,
-      InputArcInfos
+      data.GetInputArcInfos()
     );
 
     DebugLib::PrintEditDistanceStatistics(
@@ -889,14 +874,14 @@ void FileReader::CalculateLatticePhonemeErrorRate()
   }
 }
 
-bool FileReader::IsSilence(std::string phone)
+bool FileReader::IsSilence(std::string phone) const
 {
   return phone == "!SENT_START" || phone == "!SENT_END" || phone == "!NULL" ||
          phone == "sil" || phone == "!ENTER" || phone == "!EXIT" ||
          phone == "NSN" || phone == "<s>" || phone == "</s>";
 }
 
-std::string FileReader::GetSubstrAfterSep(std::string inStr, char sep)
+std::string FileReader::GetSubstrAfterSep(std::string inStr, char sep) const
 {
   return inStr.substr(inStr.find(sep)+1);
 }

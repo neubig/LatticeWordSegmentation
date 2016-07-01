@@ -61,8 +61,9 @@ int main(int argc, const char **argv)
   ParameterParser Parser(argc, argv);
 
   // Parse Input Files into FST data structures
+  FileData InputFileData;
   FileReader Reader(Parser.GetParameters());
-  FileData InputFileData = Reader.GetInputFileData();
+  Reader.ReadData(InputFileData);
   // initialize the segmenter
   LatticeWordSegmentation Segmenter(Parser.GetParameters(), InputFileData);
 

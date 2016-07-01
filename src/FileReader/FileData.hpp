@@ -68,6 +68,9 @@ class FileData{
   // a global string to int mapper which is updated with each reading process
   StringToIntMapper GlobalStringToInt;
 
+  // Pronunciation dictionary
+  PronDictType PronDict;
+
   // members for initialization fsts
   StringToIntMapper InitStringToInt;
   std::vector<LogVectorFst> InitFsts;
@@ -87,24 +90,10 @@ class FileData{
 
 public:
   /* Constructor */
-  FileData(
-    StringToIntMapper GlobalStringToInt,
-    StringToIntMapper InitStringToInt,
-    std::vector<LogVectorFst> InitFsts,
-    std::vector<std::string> InitFileNames,
-    StringToIntMapper InputStringToInt,
-    std::vector<LogVectorFst> InputFsts,
-    std::vector<std::string> InputFileNames,
-    std::vector<ArcInfo> InputArcInfos,
-    StringToIntMapper ReferenceStringToInt,
-    std::vector<LogVectorFst> ReferenceFsts,
-    std::vector<std::string> ReferenceFileNames
-  );
-
+  FileData();
 
   /* Copy Constructor */
   FileData(const FileData& lhs);
-
 
   /* interface */
   // get vector mapping integer to string (characters)
@@ -118,24 +107,43 @@ public:
 
   size_t GetNumInputs() const;
 
-  // We do not have GetInputFsts() because they may be calculated on-the-fly
-  // on a sentence-by-sentence basis
-  const LogVectorFst &GetInputFst(size_t index) const;
-  // const std::vector<LogVectorFst> &GetInputFsts() const;
+  // Simple accessors
+  const LogVectorFst &GetInputFst(size_t index) const { return InputFsts[index]; }
+  const std::vector<LogVectorFst> &GetInputFsts() const { return InputFsts; }
+  const LogVectorFst &GetReferenceFst(size_t index) const { return ReferenceFsts[index]; }
+  const std::vector<LogVectorFst> &GetReferenceFsts() const { return ReferenceFsts; }
+  const LogVectorFst &GetInitFst(size_t index) const { return InitFsts[index]; }
+  const std::vector<LogVectorFst> &GetInitFsts() const { return InitFsts; }
 
-  const LogVectorFst &GetReferenceFst(size_t index) const;
-  const std::vector<LogVectorFst> &GetReferenceFsts() const;
+  LogVectorFst &GetInputFst(size_t index) { return InputFsts[index]; }
+  std::vector<LogVectorFst> &GetInputFsts() { return InputFsts; }
+  LogVectorFst &GetReferenceFst(size_t index) { return ReferenceFsts[index]; }
+  std::vector<LogVectorFst> &GetReferenceFsts() { return ReferenceFsts; }
+  LogVectorFst &GetInitFst(size_t index) { return InitFsts[index]; }
+  std::vector<LogVectorFst> &GetInitFsts() { return InitFsts; }
 
-  const LogVectorFst &GetInitFst(size_t index) const;
-  const std::vector<LogVectorFst> &GetInitFsts() const;
+  const std::vector<std::string> &GetInputFileNames() const { return InputFileNames; }
+  const std::vector<std::string> &GetReferenceFileNames() const { return ReferenceFileNames; }
+  const std::vector<std::string> &GetInitFileNames() const { return InitFileNames; }
+  const std::vector<ArcInfo> &GetInputArcInfos() const { return InputArcInfos; }
 
-  const std::vector<std::string> &GetInputFileNames() const;
+  std::vector<std::string> &GetInputFileNames() { return InputFileNames; }
+  std::vector<std::string> &GetReferenceFileNames() { return ReferenceFileNames; }
+  std::vector<std::string> &GetInitFileNames() { return InitFileNames; }
+  std::vector<ArcInfo> &GetInputArcInfos() { return InputArcInfos; }
 
-  const std::vector<std::string> &GetReferenceFileNames() const;
+  const StringToIntMapper &GetGlobalStringToInt() const { return GlobalStringToInt; }
+  const StringToIntMapper &GetInitStringToInt() const { return InitStringToInt; }
+  const StringToIntMapper &GetInputStringToInt() const { return InputStringToInt; }
+  const StringToIntMapper &GetReferenceStringToInt() const { return ReferenceStringToInt; }
 
-  const std::vector<std::string> &GetInitFileNames() const;
+  StringToIntMapper &GetGlobalStringToInt() { return GlobalStringToInt; }
+  StringToIntMapper &GetInitStringToInt() { return InitStringToInt; }
+  StringToIntMapper &GetInputStringToInt() { return InputStringToInt; }
+  StringToIntMapper &GetReferenceStringToInt() { return ReferenceStringToInt; }
 
-  const std::vector<ArcInfo> &GetInputArcInfos() const;
+  PronDictType &GetPronDict() { return PronDict; }
+
 };
 
 #endif // _FILEDATA_HPP_

@@ -43,29 +43,13 @@
 // ----------------------------------------------------------------------------
 #include "FileData.hpp"
 
-FileData::FileData(StringToIntMapper GlobalStringToInt,
-                   StringToIntMapper InitStringToInt,
-                   std::vector<LogVectorFst> InitFsts,
-                   std::vector<std::string> InitFileNames,
-                   StringToIntMapper InputStringToInt,
-                   std::vector<LogVectorFst> InputFsts,
-                   std::vector<std::string> InputFileNames,
-                   std::vector<ArcInfo> InputArcInfos,
-                   StringToIntMapper ReferenceStringToInt,
-                   std::vector<LogVectorFst> ReferenceFsts,
-                   std::vector<std::string> ReferenceFileNames):
-  GlobalStringToInt(GlobalStringToInt),
-  InitStringToInt(InitStringToInt),
-  InitFsts(InitFsts),
-  InitFileNames(InitFileNames),
-  InputStringToInt(InputStringToInt),
-  InputFsts(InputFsts),
-  InputFileNames(InputFileNames),
-  InputArcInfos(InputArcInfos),
-  ReferenceStringToInt(ReferenceStringToInt),
-  ReferenceFsts(ReferenceFsts),
-  ReferenceFileNames(ReferenceFileNames)
-{
+FileData::FileData() {
+  GlobalStringToInt.Insert(EPS_SYMBOL);
+  GlobalStringToInt.Insert(PHI_SYMBOL);
+  GlobalStringToInt.Insert(UNKBEGIN_SYMBOL);
+  GlobalStringToInt.Insert(UNKEND_SYMBOL);
+  GlobalStringToInt.Insert(SENTSTART_SYMBOL);
+  GlobalStringToInt.Insert(SENTEND_SYMBOL);
 }
 
 FileData::FileData(const FileData& lhs):
@@ -103,56 +87,4 @@ const std::vector<std::string> &FileData::GetInitIntToStringVector() const
 size_t FileData::GetNumInputs() const
 {
   return InputFsts.size();
-}
-
-const LogVectorFst &FileData::GetInputFst(size_t index) const
-{
-  return InputFsts[index];
-}
-
-
-const LogVectorFst &FileData::GetReferenceFst(size_t index) const
-{
-  return ReferenceFsts[index];
-}
-
-
-const LogVectorFst &FileData::GetInitFst(size_t index) const
-{
-  return InitFsts[index];
-}
-
-const std::vector<LogVectorFst> &FileData::GetReferenceFsts() const
-{
-  return ReferenceFsts;
-}
-
-
-const std::vector<LogVectorFst> &FileData::GetInitFsts() const
-{
-  return InitFsts;
-}
-
-
-const std::vector<std::string> &FileData::GetInputFileNames() const
-{
-  return InputFileNames;
-}
-
-
-const std::vector<std::string> &FileData::GetReferenceFileNames() const
-{
-  return ReferenceFileNames;
-}
-
-
-const std::vector<std::string> &FileData::GetInitFileNames() const
-{
-  return InitFileNames;
-}
-
-
-const std::vector<ArcInfo> &FileData::GetInputArcInfos() const
-{
-  return InputArcInfos;
 }

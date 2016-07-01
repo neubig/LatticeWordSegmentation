@@ -70,93 +70,72 @@ class FileReader {
   // parameters
   const ParameterStruct Params;
 
-  // a global string to int mapper which is updated with each reading process
-  StringToIntMapper GlobalStringToInt;
-
-  // members for initialization fsts
-  StringToIntMapper InitStringToInt;
-  std::vector<LogVectorFst> InitFsts;
-  // filename of read initialization files
-  std::vector<std::string> InitFileNames;
-
-  // membersf for input fsts
-  StringToIntMapper InputStringToInt;
-  std::vector<LogVectorFst> InputFsts;
-  std::vector<std::string> InputFileNames;
-  std::vector<ArcInfo> InputArcInfos; // ArcInfo members: {label, start, end}
-
-  // members for reference fsts
-  StringToIntMapper ReferenceStringToInt;
-  std::vector<LogVectorFst> ReferenceFsts;
-  std::vector<std::string> ReferenceFileNames;
-
   static const bool PARSE_REFERENCES = true;
 
-  PronDictType PronDict;
   /* internal functions: input */
-  void ReadHTKLattices();
+
+  // Lattice reading commands
+  void ReadHTKLattices(FileData & data) const;
+  void ReadOpenFSTLattices(FileData & data) const;
 
   void ReadSegmentList(
     std::size_t InputFileId,
     std::string line, int debug_
-  );
-
-  void ReadOpenFSTLattices();
+  ) const;
 
   void ReadTextFiles(
+    FileData & data,
     const std::vector<std::string > &InputFiles,
     std::vector<LogVectorFst> *InputFsts,
     std::vector<std::string> *FileNames,
     bool ParseReferences=false
-  );
+  ) const;
 
   // read the symbols file mapping strings to integers
-  void ReadSymbols();
+  void ReadSymbols(FileData & data) const;
 
-  // read reference transcription from file InitFile
-  void ReadInitTranscription();
-
-  void ReadInputFilesFromList();
+  void ReadInputFilesFromList(FileData & data) const;
 
   // read reference transcription from file ReferenceFile
-  void ReadReferenceTranscription();
+  void ReadReferenceTranscription(FileData & data) const;
 
-  void ReadInputArcInfos();
-
+  void ReadInputArcInfos(FileData & data) const;
 
   /* Modifications */
   void PruneLattices(
+    FileData & data,
     double PruningFactor
-  );
+  ) const;
 
-  void ApplyAcousticModelScalingFactor();
+  void ApplyAcousticModelScalingFactor(FileData & data) const;
 
-  void ApplyWordEndTransducer();
+  void ApplyWordEndTransducer(FileData & data) const;
 
-  void ApplySentEndTransducer();
+  void ApplySentEndTransducer(FileData & data) const;
 
-  void CalculateLatticePhonemeErrorRate();
+  void CalculateLatticePhonemeErrorRate(FileData & data) const;
 
   /* internal functions: output */
-  void WriteOpenFSTLattices() const;
+  void WriteOpenFSTLattices(const FileData & data) const;
 
-  void WriteInputArcInfos() const;
+  void WriteInputArcInfos(const FileData & data) const;
 
   bool IsSilence(
     std::string phone
-  );
+  ) const;
 
   std::string GetSubstrAfterSep(
     std::string inStr,
     char sep
-  );
+  ) const;
 
-  void ReadPronDict();
+  void ReadPronDict(FileData & data) const;
 
   StateId AddPhoneToFst(
+    FileData & data,
     LogVectorFst& LatticeFst, StateId State,
     const std::string& phone
-  );
+  ) const;
 
 public:
   /* constructor */
@@ -165,8 +144,8 @@ public:
     ParameterStruct Params
   );
 
-  // return class for input file handling
-  FileData GetInputFileData();
+  void ReadData(FileData & data) const;
+
 };
 
 #endif
